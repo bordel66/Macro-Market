@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise Macro Multiativos - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="container">
+                <div class="header-content">
+                    <h1 class="dashboard-title">Dashboard Macro Multiativos - Tempo Real</h1>
+                    <div class="header-controls">
+                        <div class="timestamp">
+                            <i data-lucide="clock"></i>
+                            <span id="timestamp">Carregando...</span>
+                        </div>
+                        <button class="btn btn--secondary btn--sm" id="refresh-btn">
+                            <i data-lucide="refresh-cw"></i>
+                            Atualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- TL;DR Executive Summary -->
+        <section class="tldr-section">
+            <div class="container">
+                <h2 class="section-title">TL;DR - Resumo Executivo <span class="live-indicator">● AO VIVO</span></h2>
+                <div class="tldr-grid">
+                    <div class="tldr-card sentiment" id="sentiment-card">
+                        <div class="card-icon">
+                            <i data-lucide="trending-down"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Sentimento de Mercado</h3>
+                            <p class="status-neutral" id="market-sentiment">Carregando...</p>
+                        </div>
+                    </div>
+
+                    <div class="tldr-card fed" id="fed-card">
+                        <div class="card-icon">
+                            <i data-lucide="percent"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>FED & Macro</h3>
+                            <p class="fed-rate" id="fed-summary">Carregando...</p>
+                        </div>
+                    </div>
+
+                    <div class="tldr-card equities" id="equities-card">
+                        <div class="card-icon">
+                            <i data-lucide="bar-chart"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Ações EUA</h3>
+                            <p class="equity-summary" id="equity-summary">Carregando...</p>
+                        </div>
+                    </div>
+
+                    <div class="tldr-card crypto" id="crypto-card">
+                        <div class="card-icon">
+                            <i data-lucide="coins"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Cripto</h3>
+                            <p class="crypto-summary" id="crypto-summary">Carregando...</p>
+                        </div>
+                    </div>
+
+                    <div class="tldr-card flows" id="flows-card">
+                        <div class="card-icon">
+                            <i data-lucide="arrow-right-left"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Grandes Players</h3>
+                            <p class="flows-summary" id="flows-summary">Carregando...</p>
+                        </div>
+                    </div>
+
+                    <div class="tldr-card risks" id="risks-card">
+                        <div class="card-icon">
+                            <i data-lucide="alert-triangle"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Riscos & Níveis</h3>
+                            <p class="risks-summary" id="risks-summary">Carregando...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab Navigation -->
+        <section class="tabs-section">
+            <div class="container">
+                <nav class="tab-nav">
+                    <button class="tab-btn active" data-tab="fed-macro">
+                        <i data-lucide="percent"></i>
+                        FED & Macro
+                    </button>
+                    <button class="tab-btn" data-tab="us-equities">
+                        <i data-lucide="trending-up"></i>
+                        Ações EUA
+                    </button>
+                    <button class="tab-btn" data-tab="crypto-market">
+                        <i data-lucide="coins"></i>
+                        Cripto
+                    </button>
+                    <button class="tab-btn" data-tab="big-players">
+                        <i data-lucide="users"></i>
+                        Grandes Players
+                    </button>
+                    <button class="tab-btn" data-tab="key-levels">
+                        <i data-lucide="target"></i>
+                        Níveis & Cenários
+                    </button>
+                    <button class="tab-btn" data-tab="risks">
+                        <i data-lucide="alert-triangle"></i>
+                        Riscos
+                    </button>
+                </nav>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <!-- FED & Macro Tab -->
+                    <div id="fed-macro" class="tab-panel active">
+                        <h3>FED & Indicadores Macro</h3>
+                        <div class="panel-grid">
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>Fed Funds Rate</h4>
+                                    <div class="metric-large" id="fed-funds-rate">Carregando...</div>
+                                    <div class="metric-change" id="fed-funds-change"></div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>Treasury 10Y</h4>
+                                    <div class="metric-large" id="treasury-10y">Carregando...</div>
+                                    <div class="metric-change" id="treasury-10y-change"></div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>Treasury 2Y</h4>
+                                    <div class="metric-large" id="treasury-2y">Carregando...</div>
+                                    <div class="metric-change" id="treasury-2y-change"></div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>DXY (Dólar)</h4>
+                                    <div class="metric-large" id="dxy">Carregando...</div>
+                                    <div class="metric-change" id="dxy-change"></div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>VIX (Volatilidade)</h4>
+                                    <div class="metric-large" id="vix">Carregando...</div>
+                                    <div class="metric-change" id="vix-change"></div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>CPI Inflação</h4>
+                                    <div class="metric-large" id="cpi">Carregando...</div>
+                                    <div class="metric-change" id="cpi-change"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-24">
+                            <div class="card__body">
+                                <h4>Próximos Catalisadores Macro</h4>
+                                <div class="catalyst-list" id="macro-catalysts">
+                                    <div class="loading-shimmer catalyst-item">Carregando catalisadores...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-24">
+                            <div class="card__body">
+                                <h4>Probabilidades FED (CME FedWatch)</h4>
+                                <div id="fed-probabilities">
+                                    <div class="prob-item">
+                                        <span>Próxima Reunião (17 Set):</span>
+                                        <span class="prob-value" id="next-meeting-prob">Carregando...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- US Equities Tab -->
+                    <div id="us-equities" class="tab-panel">
+                        <h3>Ações EUA - Mercados ao Vivo</h3>
+                        <div class="panel-grid">
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>S&P 500 (^GSPC)</h4>
+                                    <div class="metric-large" id="sp500-price">Carregando...</div>
+                                    <div class="metric-change" id="sp500-change"></div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>Nasdaq (^IXIC)</h4>
+                                    <div class="metric-large" id="nasdaq-price">Carregando...</div>
+                                    <div class="metric-change" id="nasdaq-change"></div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>Russell 2000 (^RUT)</h4>
+                                    <div class="metric-large" id="russell-price">Carregando...</div>
+                                    <div class="metric-change" id="russell-change"></div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>VIX (CBOE)</h4>
+                                    <div class="metric-large" id="vix-price">Carregando...</div>
+                                    <div class="metric-change" id="vix-price-change"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stock Charts Section -->
+                        <div class="charts-section">
+                            <h4 class="charts-title">Gráficos de Ações (Últimos 5 Dias)</h4>
+                            <div class="charts-grid">
+                                <div class="chart-container" style="position: relative; height: 300px;">
+                                    <h5>S&P 500 (SPY)</h5>
+                                    <canvas id="sp500-chart"></canvas>
+                                    <div class="chart-status" id="sp500-chart-status">Carregando dados...</div>
+                                </div>
+
+                                <div class="chart-container" style="position: relative; height: 300px;">
+                                    <h5>Nasdaq (QQQ)</h5>
+                                    <canvas id="nasdaq-chart"></canvas>
+                                    <div class="chart-status" id="nasdaq-chart-status">Carregando dados...</div>
+                                </div>
+
+                                <div class="chart-container" style="position: relative; height: 300px;">
+                                    <h5>Russell 2000 (IWM)</h5>
+                                    <canvas id="russell-chart"></canvas>
+                                    <div class="chart-status" id="russell-chart-status">Carregando dados...</div>
+                                </div>
+
+                                <div class="chart-container" style="position: relative; height: 300px;">
+                                    <h5>VIX (Volatilidade)</h5>
+                                    <canvas id="vix-chart"></canvas>
+                                    <div class="chart-status" id="vix-chart-status">Carregando dados...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-24">
+                            <div class="card__body">
+                                <h4>Setores & ETFs Principais</h4>
+                                <div class="sector-grid" id="sector-performance">
+                                    <div class="loading-shimmer">Carregando dados setoriais...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-24">
+                            <div class="card__body">
+                                <h4>Indicadores de Mercado</h4>
+                                <div class="market-indicators">
+                                    <div class="indicator-item">
+                                        <span>Advance/Decline Ratio:</span>
+                                        <span id="advance-decline">Carregando...</span>
+                                    </div>
+                                    <div class="indicator-item">
+                                        <span>New Highs/Lows:</span>
+                                        <span id="highs-lows">Carregando...</span>
+                                    </div>
+                                    <div class="indicator-item">
+                                        <span>Market Cap Total:</span>
+                                        <span id="market-cap-total">Carregando...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Crypto Market Tab -->
+                    <div id="crypto-market" class="tab-panel">
+                        <h3>Cripto - Mercado Completo</h3>
+                        <div class="panel-grid">
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>Bitcoin (BTC)</h4>
+                                    <div class="metric-large" id="btc-price">Carregando...</div>
+                                    <div class="metric-change" id="btc-change"></div>
+                                    <div class="metric-detail" id="btc-mcap"></div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>Ethereum (ETH)</h4>
+                                    <div class="metric-large" id="eth-price">Carregando...</div>
+                                    <div class="metric-change" id="eth-change"></div>
+                                    <div class="metric-detail" id="eth-mcap"></div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>ETH/BTC Ratio</h4>
+                                    <div class="metric-large" id="eth-btc-ratio">Carregando...</div>
+                                    <div class="metric-change" id="eth-btc-change"></div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>BTC Dominância</h4>
+                                    <div class="metric-large" id="btc-dominance">Carregando...</div>
+                                    <div class="metric-change" id="btc-dom-change"></div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>Market Cap Total</h4>
+                                    <div class="metric-large" id="total-mcap">Carregando...</div>
+                                    <div class="metric-change" id="total-mcap-change"></div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>Volume 24h</h4>
+                                    <div class="metric-large" id="total-volume">Carregando...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-24">
+                            <div class="card__body">
+                                <h4>Top 10 Criptomoedas</h4>
+                                <div class="crypto-table" id="crypto-table">
+                                    <div class="loading-shimmer">Carregando ranking...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-24">
+                            <div class="card__body">
+                                <h4>Dados On-Chain & DeFi</h4>
+                                <div class="onchain-metrics">
+                                    <div class="metric-row">
+                                        <span>Fear & Greed Index:</span>
+                                        <span id="fear-greed">Carregando...</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Total Value Locked (DeFi):</span>
+                                        <span id="total-tvl">Carregando...</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span>Stablecoin Market Cap:</span>
+                                        <span id="stablecoin-mcap">Carregando...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Big Players Tab -->
+                    <div id="big-players" class="tab-panel">
+                        <h3>Grandes Players & Fluxos Institucionais</h3>
+                        
+                        <div class="card">
+                            <div class="card__body">
+                                <h4>ETFs - Fluxos Diários</h4>
+                                <div class="etf-flows" id="etf-flows">
+                                    <div class="loading-shimmer">Carregando dados de ETFs...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-24">
+                            <div class="card__body">
+                                <h4>Bitcoin ETFs (Spot)</h4>
+                                <div class="btc-etf-data">
+                                    <div class="etf-stat">
+                                        <span>AUM Total:</span>
+                                        <span id="btc-etf-aum">Carregando...</span>
+                                    </div>
+                                    <div class="etf-stat">
+                                        <span>Flow Semanal:</span>
+                                        <span id="btc-etf-flow">Carregando...</span>
+                                    </div>
+                                    <div class="etf-stat">
+                                        <span>Holdings BTC:</span>
+                                        <span id="btc-etf-holdings">Carregando...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-24">
+                            <div class="card__body">
+                                <h4>Ethereum ETFs (Spot)</h4>
+                                <div class="eth-etf-data">
+                                    <div class="etf-stat">
+                                        <span>AUM Total:</span>
+                                        <span id="eth-etf-aum">Carregando...</span>
+                                    </div>
+                                    <div class="etf-stat">
+                                        <span>Flow Semanal:</span>
+                                        <span id="eth-etf-flow">Carregando...</span>
+                                    </div>
+                                    <div class="etf-stat">
+                                        <span>Holdings ETH:</span>
+                                        <span id="eth-etf-holdings">Carregando...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-24">
+                            <div class="card__body">
+                                <h4>Atividade de Whales</h4>
+                                <div class="whale-activity" id="whale-activity">
+                                    <div class="loading-shimmer">Monitorando movimentações de whales...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-24">
+                            <div class="card__body">
+                                <h4>Posicionamento Institucional</h4>
+                                <div class="institutional-data">
+                                    <div class="institution-item">
+                                        <span>MicroStrategy BTC:</span>
+                                        <span id="mstr-btc">Carregando...</span>
+                                    </div>
+                                    <div class="institution-item">
+                                        <span>Tesla BTC:</span>
+                                        <span id="tesla-btc">Carregando...</span>
+                                    </div>
+                                    <div class="institution-item">
+                                        <span>El Salvador BTC:</span>
+                                        <span id="elsalvador-btc">Carregando...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Key Levels Tab -->
+                    <div id="key-levels" class="tab-panel">
+                        <h3>Níveis-chave e Cenários</h3>
+                        
+                        <div class="levels-grid">
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>Bitcoin - Níveis Técnicos</h4>
+                                    <div class="current-price">
+                                        <span>Preço Atual:</span>
+                                        <span class="price-value" id="btc-current-price">Carregando...</span>
+                                    </div>
+                                    <div class="level-section">
+                                        <h5>Resistências</h5>
+                                        <div class="level-item resistance" id="btc-resistance-1">$112,000</div>
+                                        <div class="level-item resistance" id="btc-resistance-2">$115,000</div>
+                                        <div class="level-item resistance" id="btc-resistance-3">$120,000</div>
+                                    </div>
+                                    <div class="level-section">
+                                        <h5>Suportes</h5>
+                                        <div class="level-item support" id="btc-support-1">$107,000</div>
+                                        <div class="level-item support" id="btc-support-2">$103,931</div>
+                                        <div class="level-item support" id="btc-support-3">$95,000</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>Ethereum - Níveis Técnicos</h4>
+                                    <div class="current-price">
+                                        <span>Preço Atual:</span>
+                                        <span class="price-value" id="eth-current-price">Carregando...</span>
+                                    </div>
+                                    <div class="level-section">
+                                        <h5>Resistências</h5>
+                                        <div class="level-item resistance" id="eth-resistance-1">$4,600</div>
+                                        <div class="level-item resistance" id="eth-resistance-2">$5,000</div>
+                                        <div class="level-item resistance" id="eth-resistance-3">$5,500</div>
+                                    </div>
+                                    <div class="level-section">
+                                        <h5>Suportes</h5>
+                                        <div class="level-item support" id="eth-support-1">$4,000</div>
+                                        <div class="level-item support" id="eth-support-2">$3,800</div>
+                                        <div class="level-item support" id="eth-support-3">$3,500</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card__body">
+                                    <h4>S&P 500 - Níveis Técnicos</h4>
+                                    <div class="current-price">
+                                        <span>Preço Atual:</span>
+                                        <span class="price-value" id="sp500-current-price">Carregando...</span>
+                                    </div>
+                                    <div class="level-section">
+                                        <h5>Resistências</h5>
+                                        <div class="level-item resistance">5,650</div>
+                                        <div class="level-item resistance">5,750</div>
+                                        <div class="level-item resistance">5,850</div>
+                                    </div>
+                                    <div class="level-section">
+                                        <h5>Suportes</h5>
+                                        <div class="level-item support">5,500</div>
+                                        <div class="level-item support">5,400</div>
+                                        <div class="level-item support">5,300</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-24">
+                            <div class="card__body">
+                                <h4>Cenários de Mercado</h4>
+                                <div class="scenarios">
+                                    <div class="scenario-item status-positive">
+                                        <h5>Cenário Bull 🚀</h5>
+                                        <p><strong>Probabilidade: 35%</strong></p>
+                                        <p>Payroll fraco + corte Fed 25bp confirma soft landing. ETH supera $4,600, BTC rompe $115K. Rotação para altcoins continua.</p>
+                                        <div class="scenario-targets">
+                                            <span>BTC: $120K+</span>
+                                            <span>ETH: $5,500+</span>
+                                            <span>S&P: 5,850+</span>
+                                        </div>
+                                    </div>
+                                    <div class="scenario-item status-neutral">
+                                        <h5>Cenário Base ⚖️</h5>
+                                        <p><strong>Probabilidade: 45%</strong></p>
+                                        <p>Dados moderados, corte 25bp confirmado. Volatilidade continua, mercados em range. BTC $107-115K.</p>
+                                        <div class="scenario-targets">
+                                            <span>BTC: $107-115K</span>
+                                            <span>ETH: $4,000-4,600</span>
+                                            <span>S&P: 5,500-5,650</span>
+                                        </div>
+                                    </div>
+                                    <div class="scenario-item status-negative">
+                                        <h5>Cenário Bear 📉</h5>
+                                        <p><strong>Probabilidade: 20%</strong></p>
+                                        <p>Payroll forte ou dados inflacionários = Fed pausa. Risk-off severo, BTC < $107K, dominância volta >60%.</p>
+                                        <div class="scenario-targets">
+                                            <span>BTC: $95K-</span>
+                                            <span>ETH: $3,500-</span>
+                                            <span>S&P: 5,300-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Risks Tab -->
+                    <div id="risks" class="tab-panel">
+                        <h3>Riscos & Catalisadores</h3>
+                        
+                        <div class="card">
+                            <div class="card__body">
+                                <h4>⚠️ Riscos Imediatos (Próximas 48h)</h4>
+                                <div class="risks-list immediate">
+                                    <div class="risk-item high-risk">
+                                        <div class="risk-header">
+                                            <i data-lucide="alert-circle"></i>
+                                            <h5>Non Farm Payrolls (5 Set, 13:30)</h5>
+                                            <span class="risk-level critical">CRÍTICO</span>
+                                        </div>
+                                        <p>Esperado: 75K vs 73K anterior. Forte > 100K pode cancelar corte Fed.</p>
+                                        <div class="risk-impact">Impacto: BTC -10-15%, Ações -3-5%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-24">
+                            <div class="card__body">
+                                <h4>🔥 Riscos de Médio Prazo</h4>
+                                <div class="risks-list medium">
+                                    <div class="risk-item medium-risk">
+                                        <div class="risk-header">
+                                            <i data-lucide="alert-triangle"></i>
+                                            <h5>FOMC Decision (17 Set)</h5>
+                                            <span class="risk-level high">ALTO</span>
+                                        </div>
+                                        <p>86.6% probabilidade de corte, mas guidance forward pode ser hawkish.</p>
+                                    </div>
+                                    <div class="risk-item medium-risk">
+                                        <div class="risk-header">
+                                            <i data-lucide="trending-down"></i>
+                                            <h5>Setembro Sazonal</h5>
+                                            <span class="risk-level medium">MÉDIO</span>
+                                        </div>
+                                        <p>Historically worst month: BTC avg -7.5%, S&P avg -1.1%.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-24">
+                            <div class="card__body">
+                                <h4>📊 Sinais de Alerta - Monitoramento</h4>
+                                <div class="alert-signals">
+                                    <div class="signal-item" id="signal-dominance">
+                                        <div class="signal-indicator" data-status="normal"></div>
+                                        <span>BTC Dominância > 58%</span>
+                                        <span class="signal-value" id="current-dominance">57.4%</span>
+                                    </div>
+                                    <div class="signal-item" id="signal-vix">
+                                        <div class="signal-indicator" data-status="warning"></div>
+                                        <span>VIX > 30</span>
+                                        <span class="signal-value" id="current-vix">24.11</span>
+                                    </div>
+                                    <div class="signal-item" id="signal-dxy">
+                                        <div class="signal-indicator" data-status="normal"></div>
+                                        <span>DXY > 100</span>
+                                        <span class="signal-value" id="current-dxy">98.1</span>
+                                    </div>
+                                    <div class="signal-item" id="signal-yields">
+                                        <div class="signal-indicator" data-status="normal"></div>
+                                        <span>10Y Yield > 4.5%</span>
+                                        <span class="signal-value" id="current-yield">4.23%</span>
+                                    </div>
+                                    <div class="signal-item" id="signal-funding">
+                                        <div class="signal-indicator" data-status="normal"></div>
+                                        <span>Funding Rates < 0</span>
+                                        <span class="signal-value" id="current-funding">+0.008%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-24">
+                            <div class="card__body">
+                                <h4>🎯 Gatilhos para Mudança de Cenário</h4>
+                                <div class="scenario-triggers">
+                                    <div class="trigger-item bull">
+                                        <h5>🚀 Trigger Bull</h5>
+                                        <ul>
+                                            <li>Payroll < 50K + Unemployment > 4.3%</li>
+                                            <li>Fed corte + dovish guidance</li>
+                                            <li>BTC rompe $115K com volume</li>
+                                            <li>ETF flows > $2B semana</li>
+                                        </ul>
+                                    </div>
+                                    <div class="trigger-item bear">
+                                        <h5>📉 Trigger Bear</h5>
+                                        <ul>
+                                            <li>Payroll > 150K + wages growth > 4%</li>
+                                            <li>Fed pausa ou hawkish pivot</li>
+                                            <li>BTC perde $107K decisivamente</li>
+                                            <li>VIX > 35 sustentado</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
